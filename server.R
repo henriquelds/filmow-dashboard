@@ -29,7 +29,7 @@ server <- function(input, output) {
                 INNER JOIN public.movies as movs ON movs.movie_tag = dirs.movie_tag AND movs.year BETWEEN ?min and ?max
                 INNER join public.ratings as rats ON movs.movie_tag = rats.movie_tag
                 where dirs.director = ?dirname ORDER BY movs.year ASC LIMIT 1000;",
-                                dirname = input$selectizedir, min = input$slideryear[1], max = input$slideryear[2])
+                dirname = input$selectizedir, min = input$slideryear[1], max = input$slideryear[2])
         outp <- dbGetQuery(pool, query)
         p <- ggplot(outp, aes(x=runtime)) + 
             geom_histogram(aes(y=..density..), colour="black", fill="white")+
@@ -43,7 +43,7 @@ server <- function(input, output) {
                 INNER JOIN public.movies as movs ON movs.movie_tag = dirs.movie_tag AND movs.year BETWEEN ?min and ?max
                 INNER join public.ratings as rats ON movs.movie_tag = rats.movie_tag
                 where dirs.director = ?dirname ORDER BY movs.year ASC LIMIT 1000;",
-                                dirname = input$selectizedir, min = input$slideryear[1], max = input$slideryear[2])
+                dirname = input$selectizedir, min = input$slideryear[1], max = input$slideryear[2])
         outp <- dbGetQuery(pool, query)
         p <- ggplot(outp, aes(x=rating)) + 
             geom_histogram(aes(y=..density..), colour="black", fill="white")+
@@ -51,4 +51,38 @@ server <- function(input, output) {
         return(p)
     })
     
+    userdata <- eventReactive(input$runButton,{
+        query <- sqlInterpolate(ANSI(), "SELECT rats.rating as rating
+                FROM public.users as users
+                INNER join public.ratings as rats ON users.id = rats.user_id
+                where users.username = ?username LIMIT 1000;",
+                username = input$textUser)
+        outp <- dbGetQuery(pool, query)
+        return(outp)
+    })
+    
+    userdatayear <- eventReactive(input$runButton,{
+        query <- sqlInterpolate(ANSI(), "SELECT rats.rating as rating
+                FROM public.users as users
+                INNER join public.ratings as rats ON users.id = rats.user_id
+                INNER JOIN public.movies as movs ON movs.movie_tag = rats.movie_tag AND movs.year BETWEEN ?min and ?max
+                where users.username = ?username LIMIT 1000;",
+                username = input$textUser, min = input$slideryearpd[1], max = input$slideryearpd[2])
+        outp <- dbGetQuery(pool, query)
+        return(outp)
+    })
+    
+    output$plotdensuser <- renderPlot({
+        p <- ggplot(userdata(), aes(x=rating)) + 
+            geom_histogram(aes(y=..density..), colour="black", fill="white")+
+            geom_density(alpha=.2, fill="#FF6666") + labs(x = "Rating", y = "Density")
+        return(p)   
+    })
+    
+    output$plotdensuseryear <- renderPlot({
+        p <- ggplot(userdatayear(), aes(x=rating)) + 
+            geom_histogram(aes(y=..density..), colour="black", fill="white")+
+            geom_density(alpha=.2, fill="#FF6666") + labs(x = "Rating", y = "Density")
+        return(p)   
+    })
 }

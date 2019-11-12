@@ -15,7 +15,8 @@ ui <- dashboardPage(
     dashboardHeader(title = "Filmow dashboard"),
     dashboardSidebar(sidebarMenu(
         menuItem("Movies Visualizer", tabName = "movvisu", icon = icon("dashboard")),
-        menuItem("Density (runtime)", tabName = "densrun", icon = icon("th"))
+        menuItem("Density plots (movies)", tabName = "densmov", icon = icon("th")),
+        menuItem("Density plots (users)", tabName = "densuser", icon = icon("th"))
     )),
     dashboardBody(
         tabItems(
@@ -30,7 +31,7 @@ ui <- dashboardPage(
                     )
                 )
             ),
-            tabItem(tabName = "densrun",
+            tabItem(tabName = "densmov",
                 fluidRow(
                     column(8,plotOutput("plotdensrun", height = 250)),
                     column(4,box(
@@ -43,7 +44,22 @@ ui <- dashboardPage(
                 fluidRow(
                     column(8,plotOutput("plotdir", height = 250)),  
                 )
-            
+            ),
+            tabItem(tabName = "densuser",
+                fluidRow(
+                    column(8,plotOutput("plotdensuser", height = 250)),
+                    column(4,box(
+                        title = "Controls",
+                        textInput("textUser", "Type username:", value="heinrique"),
+                        sliderInput("slideryearpd", "Select year range:", min=data_maxmin$min, max=data_maxmin$max, value = c(data_maxmin$min, data_maxmin$max),step=10),
+                        #selectizeInput("selectizedir", "Select director:", choices=directors$name, options = list(maxItems = 1)),
+                        actionButton("runButton", "Plot"),
+                        width = 12)
+                    )
+                ),
+                fluidRow(
+                    column(8,plotOutput("plotdensuseryear", height = 250)),  
+                )
             )
         )
     )
