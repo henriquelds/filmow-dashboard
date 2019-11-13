@@ -12,7 +12,7 @@ library(shinydashboard)
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
-    dashboardHeader(title = "Filmow dashboard"),
+    dashboardHeader(title = "Filmow Dashboard"),
     dashboardSidebar(sidebarMenu(
         menuItem("Movies Visualizer", tabName = "movvisu", icon = icon("dashboard")),
         menuItem("Density plots (movies)", tabName = "densmov", icon = icon("th")),
