@@ -9,6 +9,8 @@
 
 library(shiny)
 library(ggplot2)
+library(plyr)
+library(dplyr)
 library(recommenderlab)
 library(Matrix)
 
@@ -23,6 +25,126 @@ server <- function(input, output) {
         outp <- dbGetQuery(pool, query)
         ret <- DT::datatable(outp)
         return(ret)
+    })
+    
+    output$histcountries <- renderPlot({
+        query <- sqlInterpolate(ANSI(), "SELECT country as country 
+                FROM movie_to_countries;")
+        outp <- dbGetQuery(pool, query)
+        outp$country <- factor(outp$country)
+        levels(outp$country) <- sub("Reino Unido da Grã-Bretanha e Irlanda do Norte", "Reino Unido", levels(outp$country))
+        levels(outp$country) <- sub("Estados Unidos da América", "Estados Unidos", levels(outp$country))
+        w <- Merge.factors(outp$country, .01)
+        outp$newcountry <- w
+        b <- outp %>% group_by(newcountry) %>% summarise(count=n())
+        b <- max(b$count)
+        nl <- names(sort(table(outp$newcountry),decreasing=FALSE))
+        outp <- within(outp,newcountry <- factor(newcountry,levels=nl))
+        p <- ggplot(outp, aes(newcountry, fill=newcountry))
+        p <- p + geom_bar(width=1, colour="white")
+        p <- p + geom_text(aes(y=..count.., label=..count..),
+                           stat="count", color="black",
+                           hjust=0.0, size=6)
+        p <- p + labs(y = "Filmes")
+        p <- p + theme(legend.position="none", axis.text=element_text(colour="black",size=14,face="bold"), 
+                       axis.title.x = element_text(colour="black",size=14,face="bold"),
+                       axis.title.y = element_blank())
+        p <- p + coord_flip(ylim = c(0, b+(b*0.1))) 
+        return(p)
+    })
+    
+    output$histgenres <- renderPlot({
+        query <- sqlInterpolate(ANSI(), "SELECT genres.genre as genre 
+                FROM movie_to_genres
+                INNER JOIN genres ON movie_to_genres.genre_id = genres.id;")
+        outp <- dbGetQuery(pool, query)
+        x <- factor(outp$genre)
+        w <- Merge.factors(x, .01)
+        outp$newgenre <- w
+        b <- outp %>% group_by(newgenre) %>% summarise(count=n())
+        b <- max(b$count)
+        nl <- names(sort(table(outp$newgenre),decreasing=FALSE))
+        outp <- within(outp,newgenre <- factor(newgenre,levels=nl))
+        p <- ggplot(outp, aes(newgenre, fill=newgenre))
+        p <- p + geom_bar(width=1, colour="white")
+        p <- p + geom_text(aes(y=..count.., label=..count..),
+                           stat="count", color="black",
+                           hjust=0.0, size=4)
+        p <- p + labs(y = "Filmes")
+        p <- p + theme(legend.position="none", axis.text=element_text(colour="black",size=14,face="bold"), 
+                       axis.title.x = element_text(colour="black",size=14,face="bold"),
+                       axis.title.y = element_blank())
+        p <- p + coord_flip(ylim = c(0, b+(b*0.1)))
+        return(p)
+    })
+    
+    output$histruntime <- renderPlot({
+        query <- sqlInterpolate(ANSI(), "SELECT movies.runtime as runtime 
+                FROM movies;")
+        outp <- dbGetQuery(pool, query)
+        outp <- outp %>% mutate(runtime=cut(runtime,breaks=c(seq(0,300,20),10000))) # %>%
+        outp$runtime <- factor(outp$runtime)
+        b <- outp %>% group_by(runtime) %>% summarise(count=n())
+        b <- max(b$count)
+        p <- ggplot(outp, aes(runtime, fill=runtime))
+        p <- p + geom_bar(width=1, colour="white")
+        p <- p + geom_text(aes(y=..count.., label=..count.., angle=90),
+                           stat="count", color="black",
+                           hjust=0, size=5)
+        p <- p + labs(x = "Duração (min)")
+        p <- p + theme(legend.position="none", axis.text.y = element_text(colour="black",size=14,face="bold"), 
+                       axis.text.x = element_text(colour="black",size=14,face="bold", angle=90, vjust = 0.8), 
+                       axis.title.x = element_text(colour="black",size=14,face="bold"),
+                       axis.title.y = element_blank())
+        p <- p + ylim(0,b+(b*0.12))
+        return(p)
+    })
+    
+    output$histyear <- renderPlot({
+        query <- sqlInterpolate(ANSI(), "SELECT movies.year as year 
+                FROM movies;")
+        outp <- dbGetQuery(pool, query)
+        outp <- outp %>% mutate(year=cut(year,dig.lab = 4, breaks=c(seq(1900,2020,10),2100))) # %>%
+        
+        outp$year <- factor(outp$year)
+        b <- outp %>% group_by(year) %>% summarise(count=n())
+        b <- max(b$count)
+        p <- ggplot(outp, aes(year, fill=year))
+        p <- p + geom_bar(width=1, colour="white")
+        p <- p + geom_text(aes(y=..count.., label=..count.., angle=90),
+                           stat="count", color="black",
+                           hjust=0, size=5)
+        p <- p + labs(x = "Ano")
+        p <- p + theme(legend.position="none", axis.text.y = element_text(colour="black",size=14,face="bold"), 
+                       axis.text.x = element_text(colour="black",size=14,face="bold", angle=90, vjust = 0.8), 
+                       axis.title.x = element_text(colour="black",size=14,face="bold"),
+                       axis.title.y = element_blank())
+        p <- p + ylim(0,b+(b*0.12))
+        return(p)
+    })
+    
+    output$histcities <- renderPlot({
+        query <- sqlInterpolate(ANSI(), "SELECT users.city as city 
+                FROM users;")
+        outp <- dbGetQuery(pool, query)
+        outp <- na.omit(outp)
+        outp$city <- factor(outp$city)
+        outp$city <- Merge.factors(outp$city, .01)
+        b <- outp %>% group_by(city) %>% summarise(count=n())
+        b <- max(b$count)
+        nl <- names(sort(table(outp$city),decreasing=FALSE))
+        outp <- within(outp,city <- factor(city,levels=nl))
+        p <- ggplot(outp, aes(city, fill=city))
+        p <- p + geom_bar(width=1, colour="white")
+        p <- p + geom_text(aes(y=..count.., label=..count..),
+                           stat="count", color="black",
+                           hjust=0.0, size=6)
+        p <- p + labs(y = "Usuários")
+        p <- p + theme(legend.position="none", axis.text=element_text(colour="black",size=14,face="bold"), 
+                       axis.title.x = element_text(colour="black",size=14,face="bold"),
+                       axis.title.y = element_blank())
+        p <- p + coord_flip(ylim = c(0, b+(b*0.1))) 
+        return(p)
     })
     
     output$plotdensrun <- renderPlot({

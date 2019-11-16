@@ -4,6 +4,19 @@ library(plotly)
 library(rjson)
 library(pool)
 
+Merge.factors <- function(x, p) { 
+  #Combines factor levels in x that are less than a specified proportion, p.
+  t <- table(x)
+  y <- subset(t, prop.table(t) < p)
+  tit <- paste("Outros (",length(y),")",sep = "")
+  z <- subset(t, prop.table(t) >= p)
+  other <- rep(tit, sum(y))
+  new.table <- c(z, table(other))
+  new.x <- as.factor(rep(names(new.table), new.table))
+  return(new.x)
+}
+
+
 pool <- dbPool(
   drv = dbDriver("PostgreSQL", max.con = 100),
   dbname = "filmow",

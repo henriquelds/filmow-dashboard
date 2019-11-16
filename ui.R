@@ -15,6 +15,8 @@ ui <- dashboardPage(
     dashboardHeader(title = "Filmow Dashboard"),
     dashboardSidebar(sidebarMenu(
         menuItem("Movies Visualizer", tabName = "movvisu", icon = icon("dashboard")),
+        menuItem("Histograms (movies)", tabName = "histsmov", icon = icon("dashboard")),
+        menuItem("Histograms (users)", tabName = "histsusers", icon = icon("dashboard")),
         menuItem("Density plots (movies)", tabName = "densmov", icon = icon("th")),
         menuItem("Density plots (users)", tabName = "densuser", icon = icon("th")),
         menuItem("Recommender (CF)", tabName = "rec", icon = icon("th"))
@@ -31,6 +33,28 @@ ui <- dashboardPage(
                         width = 12)
                     )
                 )
+            ),
+            tabItem(tabName = "histsmov", 
+                    fluidRow(
+                        column(6,plotOutput("histcountries", height = 400, width="100%")),
+                        column(6,plotOutput("histgenres", height = 400, width="100%"))
+                    ),
+                    br(),
+                    fluidRow(
+                        column(6,plotOutput("histruntime", height = 400, width="100%")),
+                        column(6,plotOutput("histyear", height = 400, width="100%"))
+                    )
+            ),
+            tabItem(tabName = "histsusers", 
+                    fluidRow(
+                        column(6,plotOutput("histcities", height = 400, width="100%")),
+                        column(6,plotOutput("histage", height = 400, width="100%"))
+                    ),
+                    br(),
+                    fluidRow(
+                        column(6,plotOutput("histseen", height = 400, width="100%")),
+                        column(6,plotOutput("histqtrats", height = 400, width="100%"))
+                    )
             ),
             tabItem(tabName = "densmov",
                 fluidRow(
