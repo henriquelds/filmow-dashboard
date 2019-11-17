@@ -17,6 +17,7 @@ ui <- dashboardPage(
         menuItem("Movies Visualizer", tabName = "movvisu", icon = icon("dashboard")),
         menuItem("Histograms (movies)", tabName = "histsmov", icon = icon("dashboard")),
         menuItem("Histograms (users)", tabName = "histsusers", icon = icon("dashboard")),
+        menuItem("Heatmaps", tabName = "heatmaps", icon = icon("dashboard")),
         menuItem("Density plots (movies)", tabName = "densmov", icon = icon("th")),
         menuItem("Density plots (users)", tabName = "densuser", icon = icon("th")),
         menuItem("Recommender (CF)", tabName = "rec", icon = icon("th"))
@@ -48,12 +49,23 @@ ui <- dashboardPage(
             tabItem(tabName = "histsusers", 
                     fluidRow(
                         column(6,plotOutput("histcities", height = 400, width="100%")),
-                        column(6,plotOutput("histage", height = 400, width="100%"))
+                        column(6,plotOutput("histseen", height = 400, width="100%"))
                     ),
                     br(),
                     fluidRow(
-                        column(6,plotOutput("histseen", height = 400, width="100%")),
-                        column(6,plotOutput("histqtrats", height = 400, width="100%"))
+                        column(6,plotOutput("histqtrats", height = 400, width="100%")),
+                        column(6,plotOutput("histmeanrats", height = 400, width="100%"))
+                    )
+            ),
+            tabItem(tabName = "heatmaps",
+                    fluidRow(
+                        column(10,plotlyOutput("heatmap", height = 400)),
+                        column(2,box(
+                            title = "Controls",
+                            sliderInput("slideryear", "Select year range:", min=data_maxmin$min, max=data_maxmin$max, value = c(data_maxmin$min, data_maxmin$max),step=10),
+                            selectizeInput("selectizedir", "Select director:", choices=directors$name, options = list(maxItems = 1)),
+                            width = 12)
+                        )
                     )
             ),
             tabItem(tabName = "densmov",
